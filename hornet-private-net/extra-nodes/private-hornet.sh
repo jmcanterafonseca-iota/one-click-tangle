@@ -78,8 +78,8 @@ volumeSetup () {
 bootstrapFiles () {
   cp ../../docker-compose.yml .
   sed -i 's/node/'$node_name'/g' docker-compose.yml
-  cp ../../config/config-node.json ./config/config.json
-  cp ../../config/profiles.json ./config/profiles.json
+  cp ../../../config/config-node.json ./config/config.json
+  cp ../../../config/profiles.json ./config/profiles.json
 }
 
 installNode () {
@@ -92,7 +92,7 @@ installNode () {
   bootstrapFiles
 
   # P2P identity is generated
-  # setupIdentity
+  setupIdentity
 
   # Peering of the nodes is configured
   # setupPeering
@@ -151,7 +151,7 @@ setCooPublicKey () {
 }
 
 generateP2PIdentity () {
-  docker-compose run --rm node hornet tool p2pidentity > identity.txt
+  docker-compose run --rm "$node_name" hornet tool p2pidentity > identity.txt
 }
 
 setupIdentityPrivateKey () {
@@ -163,10 +163,10 @@ setupIdentityPrivateKey () {
 ###
 ### Sets up the identities of the different nodes
 ###
-setupIdentities () {
+setupIdentity () {
   generateP2PIdentity
 
-  setupIdentityPrivateKey node1.identity.txt config/config.json
+  setupIdentityPrivateKey identity.txt config/config.json
 }
 
 # Sets up the identity of the peers
@@ -231,16 +231,16 @@ case "${command}" in
     help
     ;;
 	"install")
-    installTangle
+    installNode
     ;;
   "start")
-    startTangle
+    startNode
     ;;
   "update")
-    updateTangle
+    updateNode
     ;;
   "stop")
-		stopContainers
+		stopContainer
 		;;
   *)
 		echo "Command not Found."
