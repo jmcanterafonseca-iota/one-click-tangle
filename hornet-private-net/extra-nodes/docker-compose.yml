@@ -12,7 +12,7 @@ services:
     # network_mode: host
     networks:
       - tangle
-    image: gohornet/hornet:1.0.2
+    image: gohornet/hornet:latest
     restart: unless-stopped
     container_name: node
     expose:
@@ -29,6 +29,7 @@ services:
       - ./config/peering.json:/app/peering.json
       - ./db:/app/db
       - ./p2pstore:/app/p2pstore
+      - ./snapshots:/app/snapshots
     cap_drop:
         - ALL
   

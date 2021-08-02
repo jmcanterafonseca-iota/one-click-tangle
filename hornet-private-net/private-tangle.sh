@@ -110,8 +110,6 @@ installTangle () {
   # First of all volumes have to be set up
   volumeSetup
 
-  # TODO: In the feature differentitate between "start", "stop", "remove"
-  # And only cleaning when we want to really remove all previous state
   clean
 
   # The network is created to support the containers

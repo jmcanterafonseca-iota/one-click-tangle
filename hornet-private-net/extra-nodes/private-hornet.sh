@@ -2,8 +2,9 @@
 
 # Script to add a new Hornet Node to a Private Tangle
 # private-hornet.sh [install|start|stop] <node_details> <coo_public_key>? <peer_address>?
-# node_details must be a colon separated string including "node_name:api_port:peering_port:dashboard_port"
+# node_details must be a colon-separated string including "node_name:api_port:peering_port:dashboard_port"
 # example "mynode:14627:15601:8082"
+# if the ports are not provided the default ones will be used
 
 set -e
 
@@ -20,9 +21,12 @@ if [ $#  -lt 2 ]; then
   exit 1
 fi
 
+# Prepare all execution variables
+
 command="$1"
 node_details="$2"
 
+# Split the node details string
 IFS=':'
 read -a node_params <<< "$node_details"
 
@@ -34,10 +38,6 @@ node_name="${node_params[0]}"
 api_port="${node_params[1]}"
 peering_port="${node_params[2]}"
 dashboard_port="${node_params[3]}"
-
-echo $peering_port
-echo $api_port
-echo $dashboard_port
 
 if [ -z "$api_port" ]; then
   api_port=$DEFAULT_API_PORT
@@ -58,7 +58,7 @@ else
     coo_public_key=$(cat ../coo-milestones-public-key.txt | tr -d "\n")
   else 
     echo "Please provide the coordinator's public key"
-    exit 129
+    exit 131
   fi
 fi
 
@@ -69,23 +69,26 @@ else
     peer_address="/dns/node1/tcp/15600/p2p/$(getPeerID ../node1.identity.txt)"
   else
     echo "Please provide a peering address"
-    exit 130
+    exit 132
   fi
 fi
 
-echo $coo_public_key
-echo $peer_address
-echo $peering_port
-echo $api_port
-echo $dashboard_port
+
+# Basic bootstrapping of folders for our Node
+
+if ! [ -d ./nodes ]; then
+  mkdir ./nodes
+fi
+
+if ! [ -d ./nodes/"$node_name" ]; then
+  mkdir ./nodes/"$node_name"
+fi
 
 clean () {
   stopContainers
 
-  cd ./nodes/"$node_name"
-
   if [ -d ./db ]; then
-    sudo rm -Rf ./db
+    sudo rm -Rf ./db/*
   fi
 
   if [ -d ./p2pstore ]; then
@@ -93,20 +96,16 @@ clean () {
   fi
 
   if [ -d ./config ]; then
-    sudo rm -Rf ./config
+    sudo rm -Rf ./config/*
+  fi
+
+  if [ -d ./snapshots/private-tangle ]; then
+    sudo rm -Rf ./snapshots/private-tangle/*
   fi
 }
 
 # Sets up the necessary directories if they do not exist yet
 volumeSetup () {
-  if ! [ -d ./nodes ]; then
-    mkdir ./nodes
-  fi
-
-  if ! [ -d ./nodes/"$node_name" ]; then
-    mkdir ./nodes/"$node_name"
-  fi
-
   cd  ./nodes/"$node_name"
   
   if ! [ -d ./config ]; then
@@ -122,26 +121,34 @@ volumeSetup () {
     mkdir ./p2pstore
   fi
 
+  if ! [ -d ./snapshots ]; then
+    mkdir ./snapshots
+  fi
+
+  if ! [ -d ./snapshots/private-tangle ]; then
+    mkdir ./snapshots/private-tangle
+  fi
+
   ## Change permissions so that the Tangle data can be written (hornet user)
   ## TODO: Check why on MacOS this cause permission problems
   if ! [[ "$OSTYPE" == "darwin"* ]]; then
     echo "Setting permissions for Hornet..."
     sudo chown -R 65532:65532 ./db 
     sudo chown -R 65532:65532 ./p2pstore
+    sudo chown -R 65532:65532 ./snapshots
   fi 
 }
 
 bootstrapFiles () {
+  echo "$(pwd)"
   cp ../../docker-compose.yml .
   sed -i 's/node/'$node_name'/g' docker-compose.yml
-  sed -i 's/'$DEFAULT_API_PORT'/'$api_port'/g' docker-compose.yml
-  sed -i 's/'$DEFAULT_PEERING_PORT'/'$peering_port'/g' docker-compose.yml
-  sed -i 's/'$DEFAULT_DASHBOARD_PORT'/'$dashboard_port'/g' docker-compose.yml
+  sed -i 's/0.0.0.0:'$DEFAULT_API_PORT'/0.0.0.0:'$api_port'/g' docker-compose.yml
+  sed -i 's/0.0.0.0:'$DEFAULT_PEERING_PORT'/0.0.0.0:'$peering_port'/g' docker-compose.yml
+  sed -i 's/0.0.0.0:'$DEFAULT_DASHBOARD_PORT'/0.0.0.0:'$dashboard_port'/g' docker-compose.yml
 
   cp ../../../config/config-node.json ./config/config.json
-  sed -i 's/'$DEFAULT_API_PORT'/'$api_port'/g' ./config/config.json
-  sed -i 's/'$DEFAULT_PEERING_PORT'/'$peering_port'/g' ./config/config.json
-  sed -i 's/'$DEFAULT_DASHBOARD_PORT'/'$dashboard_port'/g' ./config/config.json
+  sed -i 's/node1/'$node_name'/g' ./config/config.json
 
   cp ../../../config/profiles.json ./config/profiles.json
   cp ../../peering.json ./config/peering.json
@@ -151,8 +158,8 @@ installNode () {
   # First of all volumes have to be set up
   volumeSetup
 
-  # And only cleaning when we want to really remove all previous state
-  # clean
+  # A new installation implies cleaning files
+  clean
 
   bootstrapFiles
 
