@@ -26,24 +26,28 @@ node_details="$2"
 IFS=':'
 read -a node_params <<< "$node_details"
 
-DEFAULT_API_PORT=14265
-DEFAULT_PEERING_PORT=15600
-DEFAULT_DASHBOARD_PORT=8081
+DEFAULT_API_PORT="14265"
+DEFAULT_PEERING_PORT="15600"
+DEFAULT_DASHBOARD_PORT="8081"
 
-node_name=${node_params[0]}
-api_port=${node_params[1]}
-peering_port=${node_params[2]}
-dashboard_port=${node_params[3]}
+node_name="${node_params[0]}"
+api_port="${node_params[1]}"
+peering_port="${node_params[2]}"
+dashboard_port="${node_params[3]}"
 
-if [ -n "$api_port" ]; then
+echo $peering_port
+echo $api_port
+echo $dashboard_port
+
+if [ -z "$api_port" ]; then
   api_port=$DEFAULT_API_PORT
 fi
 
-if [ -n "$peering_port" ]; then
+if [ -z "$peering_port" ]; then
   peering_port=$DEFAULT_PEERING_PORT
 fi
 
-if [ -n "$dashboard_port" ]; then
+if [ -z "$dashboard_port" ]; then
   dashboard_port=$DEFAULT_DASHBOARD_PORT
 fi
 
@@ -71,9 +75,11 @@ fi
 
 echo $coo_public_key
 echo $peer_address
+echo $peering_port
+echo $api_port
+echo $dashboard_port
 
 clean () {
-  # TODO: Differentiate between start, restart and remove
   stopContainers
 
   cd ./nodes/"$node_name"
@@ -130,12 +136,12 @@ bootstrapFiles () {
   sed -i 's/node/'$node_name'/g' docker-compose.yml
   sed -i 's/'$DEFAULT_API_PORT'/'$api_port'/g' docker-compose.yml
   sed -i 's/'$DEFAULT_PEERING_PORT'/'$peering_port'/g' docker-compose.yml
-  sed -i 's/'$DEFAULT_DASHBAOARD_PORT'/'$dashboard_port'/g' docker-compose.yml
+  sed -i 's/'$DEFAULT_DASHBOARD_PORT'/'$dashboard_port'/g' docker-compose.yml
 
   cp ../../../config/config-node.json ./config/config.json
   sed -i 's/'$DEFAULT_API_PORT'/'$api_port'/g' ./config/config.json
   sed -i 's/'$DEFAULT_PEERING_PORT'/'$peering_port'/g' ./config/config.json
-  sed -i 's/'$DEFAULT_DASHBAOARD_PORT'/'$dashboard_port'/g' ./config/config.json
+  sed -i 's/'$DEFAULT_DASHBOARD_PORT'/'$dashboard_port'/g' ./config/config.json
 
   cp ../../../config/profiles.json ./config/profiles.json
   cp ../../peering.json ./config/peering.json
