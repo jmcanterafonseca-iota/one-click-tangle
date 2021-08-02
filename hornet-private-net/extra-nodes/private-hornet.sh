@@ -5,6 +5,9 @@
 
 set -e
 
+# Common utility functions
+source ../utils.sh
+
 help () {
   echo "usage: private-hornet.sh [install|start|stop] <node_name> <coo_public_key>? <peer_address>?"
 }
@@ -20,11 +23,28 @@ node_name="$2"
 
 if [ -n "$3" ]; then
   coo_public_key="$3"
+else 
+  if [ -f ../coo-milestones-public-key.txt ]; then
+    coo_public_key=$(cat ../coo-milestones-public-key.txt | tr -d "\n")
+  else 
+    echo "Please provide the coordinator's public key"
+    exit 129
+  fi
 fi
 
 if [ -n "$4" ]; then
   peer_address="$4"
+else 
+  if [ -f ../node1.identity.txt ]; then
+    peer_address="/dns/node1/tcp/15600/p2p/$(getPeerID ../node1.identity.txt)"
+  else
+    echo "Please provide a peering address"
+    exit 130
+  fi
 fi
+
+echo $coo_public_key
+echo $peer_address
 
 clean () {
   # TODO: Differentiate between start, restart and remove
@@ -38,6 +58,10 @@ clean () {
 
   if [ -d ./p2pstore ]; then
     sudo rm -Rf ./p2pstore
+  fi
+
+  if [ -f ./config/peering.json ]; then
+    sudo rm -f ./config/peering.json
   fi
 }
 
@@ -95,20 +119,19 @@ installNode () {
   setupIdentity
 
   # Peering of the nodes is configured
-  # setupPeering
+  setupPeering
 
   # Coordinator set up
-  # setupCoordinator
+  setupCoordinator
 
   # And finally containers are started
-  # startContainer
+  startContainer
 }
 
 startContainer () {
   # Run a regular node 
   docker-compose --log-level ERROR up -d "$node_name"
 }
-
 
 updateNode () {
   if ! [ -f ./db/LOG ]; then
@@ -127,79 +150,42 @@ updateNode () {
   startContainer
 }
 
-# Extracts the public key from a key pair
-getPublicKey () {
-  echo $(cat "$1" | tail -1 | cut -d ":" -f 2 | sed "s/ \+//g" | tr -d "\n" | tr -d "\r")
-}
-
-# Extracts the private key from a key pair
-getPrivateKey () {
-  echo $(cat "$1" | head -n 1 | cut -d ":" -f 2 | sed "s/ \+//g" | tr -d "\n" | tr -d "\r")
-}
 
 ###
-### Sets the Coordinator up by creating a key pair
+### Sets the Coordinator address
 ###
 setupCoordinator () {
-  setCooPublicKey "$coo_public_key" config/config.json
-}
-
-
-setCooPublicKey () {
-  local public_key="$1"
-  sed -i 's/"key": ".*"/"key": "'$public_key'"/g' "$2"
-}
-
-generateP2PIdentity () {
-  docker-compose run --rm "$node_name" hornet tool p2pidentity > identity.txt
-}
-
-setupIdentityPrivateKey () {
-  local private_key=$(cat $1 | head -n 1 | cut -d ":" -f 2 | sed "s/ \+//g" | tr -d "\n" | tr -d "\r")
-  # and then set it on the config.json file
-  sed -i 's/"identityPrivateKey": ".*"/"identityPrivateKey": "'$private_key'"/g' $2
+  echo "$(pwd)"
+  setCooPublicKey "$coo_public_key" "./config/config.json"
 }
 
 ###
 ### Sets up the identities of the different nodes
 ###
 setupIdentity () {
-  generateP2PIdentity
+  generateP2PIdentity "$node_name" identity.txt
 
-  setupIdentityPrivateKey identity.txt config/config.json
+  setupIdentityPrivateKey identity.txt "./config/config.json"
 }
 
 # Sets up the identity of the peers
 setupPeerIdentity () {
   local peerName1="$1"
-  local peerID1="$2"
+  local peerAddr="$2"
 
-  local peerName2="$3"
-  local peerID2="$4"
-
-  local peer_conf_file="$5"
+  local peer_conf_file="$3"
 
   cat <<EOF > "$peer_conf_file"
   {
     "peers": [
-      {
+       {
         "alias": "$peerName1",
-        "multiAddress": "/dns/$peerName1/tcp/15600/p2p/$peerID1"
-      },
-      {
-        "alias": "$peerName2",
-        "multiAddress": "/dns/$peerName2/tcp/15600/p2p/$peerID2"
+        "multiAddress": "$peerAddr"
       }
     ]
   } 
 EOF
 
-}
-
-# Extracts the peerID from the identity file
-getPeerID () {
-  local identity_file="$1"
-  echo $(cat $identity_file | sed '3q;d' | cut -d ":" -f 2 | sed "s/ \+//g" | tr -d "\n" | tr -d "\r")
 }
 
 ### 
@@ -208,9 +194,11 @@ getPeerID () {
 setupPeering () {
   local node1_peerID=$(getPeerID identity.txt)
 
-  setupPeerIdentity "peer" "$peer_address" config/peering.json
+  setupPeerIdentity "peer1" "$peer_address" ./config/peering.json
+  if ! [[ "$OSTYPE" == "darwin"* ]]; then
+    sudo chown 65532:65532 ./config/peering.json
+  fi
 }
-
 
 stopContainers () {
   echo "Stopping containers..."
