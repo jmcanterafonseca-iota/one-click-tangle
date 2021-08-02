@@ -12,7 +12,7 @@ set -e
 source ../utils.sh
 
 help () {
-  echo "usage: private-hornet.sh [install|start|stop] <node_details> <coo_public_key>? <peer_address>?"
+  echo "usage: private-hornet.sh [install|start|stop] <node_details> <coo_public_key>? <peer_address>? <snapshot_file>?"
 }
 
 if [ $#  -lt 2 ]; then
@@ -70,6 +70,17 @@ else
   else
     echo "Please provide a peering address"
     exit 132
+  fi
+fi
+
+if [ -n "$5" ]; then
+  snapshot_file="$5"
+else 
+  if [ -f ../snapshots/private-tangle/full_snapshot.bin ]; then
+    snapshot_file="../../../snapshots/private-tangle/full_snapshot.bin"
+  else
+    echo "Please provide a snapshot file of your Private Tangle"
+    exit 133
   fi
 fi
 
@@ -152,6 +163,8 @@ bootstrapFiles () {
 
   cp ../../../config/profiles.json ./config/profiles.json
   cp ../../peering.json ./config/peering.json
+
+  cp "$snapshot_file" ./snapshots/private-tangle
 }
 
 installNode () {
