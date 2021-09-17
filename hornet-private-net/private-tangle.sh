@@ -148,6 +148,9 @@ startContainers () {
 
   # Run a regular node 
   docker-compose --log-level ERROR up -d node
+
+  # Run the autopeering
+  docker-compose --log-level ERROR up -d node-autopeering
 }
 
 updateContainers () {
@@ -256,6 +259,8 @@ generateP2PIdentities () {
   generateP2PIdentity node node1.identity.txt
   generateP2PIdentity node coo.identity.txt
   generateP2PIdentity node spammer.identity.txt
+
+  generateP2PIdentity node node-autopeering.identity.txt
 }
 
 
@@ -268,6 +273,8 @@ setupIdentities () {
   setupIdentityPrivateKey node1.identity.txt config/config-node.json
   setupIdentityPrivateKey coo.identity.txt config/config-coo.json
   setupIdentityPrivateKey spammer.identity.txt config/config-spammer.json
+
+  setupIdentityPrivateKey ode-autopeering.identity.txt config/config-autopeering.json
 }
 
 # Sets up the identity of the peers
@@ -306,12 +313,15 @@ setupPeering () {
   local spammer_peerID=$(getPeerID spammer.identity.txt)
 
   setupPeerIdentity "node1" "$node1_peerID" "spammer" "$spammer_peerID" config/peering-coo.json
+  # The autopeering known peers
+  setupPeerIdentity "node1" "$node1_peerID" "spammer" "$spammer_peerID" config/peering-autopeering.json
   setupPeerIdentity "node1" "$node1_peerID" "coo" "$coo_peerID" config/peering-spammer.json
   setupPeerIdentity "coo" "$coo_peerID" "spammer" "$spammer_peerID" config/peering-node.json
 
   # We need this so that the peering can be properly updated
   if ! [[ "$OSTYPE" == "darwin"* ]]; then
     sudo chown 65532:65532 config/peering-node.json
+    sudo chown 65532:65532 config/peering-spammer.json
   fi
 }
 
