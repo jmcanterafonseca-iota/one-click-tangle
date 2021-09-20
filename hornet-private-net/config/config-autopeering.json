@@ -45,7 +45,7 @@
             "lowWatermark": 5
         },
         "gossipUnknownPeersLimit": 4,
-        "identityPrivateKey": "",
+        "identityPrivateKey": "7a76ce2a68dee6809296ac3037925994a778b80e6f3e6ffb608b341a37f135832b4b1e33480b369f14b7ba8f1654238ceb5c3fcd783577df84ee7fcfd42b2c27",
         "peerStore": {
             "path": "./p2pstore/node-autopeering"
         },

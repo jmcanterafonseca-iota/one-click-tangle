@@ -39,20 +39,16 @@ clean () {
     sudo rm ./db/private-tangle/coordinator.state
   fi
 
-  if [ -d ./db/private-tangle/coo.db ]; then
-    sudo rm -Rf ./db/private-tangle/coo.db/*
-  fi
-
-  if [ -d ./db/private-tangle/node1.db ]; then
-    sudo rm -Rf ./db/private-tangle/node1.db/*
-  fi
-
-  if [ -d ./db/private-tangle/spammer.db ]; then
-    sudo rm -Rf ./db/private-tangle/spammer.db/*
+  if [ -d ./db/private-tangle ]; then
+    cd ./db/private-tangle
+    removeSubfolderContent "coo.db" "node1.db" "spammer.db" "node-autopeering.db"
+    cd ../..
   fi
 
   if [ -d ./p2pstore ]; then
-    sudo rm -Rf ./p2pstore
+    cd ./p2pstore
+    removeSubfolderContent coo node1 spammer "node-autopeering"
+    cd ..
   fi
 
   if [ -d ./snapshots/private-tangle ]; then
@@ -71,17 +67,9 @@ volumeSetup () {
     mkdir ./db/private-tangle
   fi
 
-  if ! [ -d ./db/private-tangle/coo.db ]; then
-    mkdir ./db/private-tangle/coo.db
-  fi
-
-  if ! [ -d ./db/private-tangle/spammer.db ]; then
-    mkdir ./db/private-tangle/spammer.db
-  fi
-
-  if ! [ -d ./db/private-tangle/node1.db ]; then
-    mkdir ./db/private-tangle/node1.db
-  fi
+  cd ./db/private-tangle
+  createSubfolders coo.db spammer.db node1.db node-autopeering.db
+  cd ../..
 
   # Snapshots
   if ! [ -d ./snapshots ]; then
@@ -96,6 +84,10 @@ volumeSetup () {
   if ! [ -d ./p2pstore ]; then
     mkdir ./p2pstore
   fi
+
+  cd ./p2pstore
+  createSubfolders coo spammer node1 node-autopeering
+  cd ..
 
   ## Change permissions so that the Tangle data can be written (hornet user)
   ## TODO: Check why on MacOS this cause permission problems
@@ -180,18 +172,18 @@ updateTangle () {
 generateSnapshot () {
   echo "Generating an initial snapshot..."
     # First a key pair is generated
-  docker-compose run --rm node hornet tool ed25519key > key-pair.txt
+  docker-compose run --rm node hornet tool ed25519-key > key-pair.txt
 
   # Extract the public key use to generate the address
   local public_key="$(getPublicKey key-pair.txt)"
 
   # Generate the address
-  docker-compose run --rm node hornet tool ed25519addr "$public_key" | cut -d ":" -f 2\
-   | sed "s/ \+//g" | tr -d "\n" | tr -d "\r" > address.txt
+  cat key-pair.txt | awk -F : '{if ($1 ~ /ed25519 address/) print $2}' \
+  | sed "s/ \+//g" | tr -d "\n" | tr -d "\r" > address.txt
 
   # Generate the snapshot
   cd snapshots/private-tangle
-  docker-compose run --rm -v "$PWD:/output_dir" node hornet tool snapgen "private-tangle"\
+  docker-compose run --rm -v "$PWD:/output_dir" node hornet tool snap-gen "private-tangle"\
    "$(cat ../../address.txt)" 1000000000 /output_dir/full_snapshot.bin
 
   echo "Initial Ed25519 Address generated. You can find the keys at key-pair.txt and the address at address.txt"
@@ -205,7 +197,7 @@ generateSnapshot () {
 setupCoordinator () {
   local coo_key_pair_file=coo-milestones-key-pair.txt
 
-  docker-compose run --rm node hornet tool ed25519key > "$coo_key_pair_file"
+  docker-compose run --rm coo hornet tool ed25519-key > "$coo_key_pair_file"
   # Private Key is exported as it is needed to run the Coordinator
   export COO_PRV_KEYS="$(getPrivateKey $coo_key_pair_file)"
 
@@ -256,13 +248,13 @@ bootstrapCoordinator () {
 
 # Generates the P2P identities of the Nodes
 generateP2PIdentities () {
+  echo "Here0"
   generateP2PIdentity node node1.identity.txt
-  generateP2PIdentity node coo.identity.txt
-  generateP2PIdentity node spammer.identity.txt
+  generateP2PIdentity coo coo.identity.txt
+  generateP2PIdentity spammer spammer.identity.txt
 
-  generateP2PIdentity node node-autopeering.identity.txt
+  generateP2PIdentity node-autopeering node-autopeering.identity.txt
 }
-
 
 ###
 ### Sets up the identities of the different nodes
@@ -274,7 +266,7 @@ setupIdentities () {
   setupIdentityPrivateKey coo.identity.txt config/config-coo.json
   setupIdentityPrivateKey spammer.identity.txt config/config-spammer.json
 
-  setupIdentityPrivateKey ode-autopeering.identity.txt config/config-autopeering.json
+  setupIdentityPrivateKey node-autopeering.identity.txt config/config-autopeering.json
 }
 
 # Sets up the identity of the peers
