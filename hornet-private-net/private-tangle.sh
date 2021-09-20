@@ -124,6 +124,9 @@ installTangle () {
   # Peering of the nodes is configured
   setupPeering
 
+  # Autopeering entry node is configured
+  setupAutopeering
+
   # Coordinator set up
   setupCoordinator
 
@@ -248,11 +251,11 @@ bootstrapCoordinator () {
 
 # Generates the P2P identities of the Nodes
 generateP2PIdentities () {
-  echo "Here0"
   generateP2PIdentity node node1.identity.txt
   generateP2PIdentity coo coo.identity.txt
   generateP2PIdentity spammer spammer.identity.txt
 
+  # Identity of the autopeering node
   generateP2PIdentity node-autopeering node-autopeering.identity.txt
 }
 
@@ -305,8 +308,6 @@ setupPeering () {
   local spammer_peerID=$(getPeerID spammer.identity.txt)
 
   setupPeerIdentity "node1" "$node1_peerID" "spammer" "$spammer_peerID" config/peering-coo.json
-  # The autopeering known peers
-  setupPeerIdentity "node1" "$node1_peerID" "spammer" "$spammer_peerID" config/peering-autopeering.json
   setupPeerIdentity "node1" "$node1_peerID" "coo" "$coo_peerID" config/peering-spammer.json
   setupPeerIdentity "coo" "$coo_peerID" "spammer" "$spammer_peerID" config/peering-node.json
 
@@ -315,6 +316,16 @@ setupPeering () {
     sudo chown 65532:65532 config/peering-node.json
     sudo chown 65532:65532 config/peering-spammer.json
   fi
+}
+
+###
+### Sets the autopeering configuration
+### 
+setupAutopeering () {
+  local entry_peerID=$(getPeerID node-autopeering.identity.txt)
+
+  setEntryNode $entry_peerID config/config-node.json
+  setEntryNode $entry_peerID config/config-spammer.json
 }
 
 stopContainers () {

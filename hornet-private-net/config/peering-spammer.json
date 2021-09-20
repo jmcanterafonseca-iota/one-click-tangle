@@ -2,11 +2,11 @@
     "peers": [
       {
         "alias": "node1",
-        "multiAddress": "/dns/node1/tcp/15600/p2p/12D3KooWFaEwnq5zyUjDuYqJqnv8c7cn3WcFL833ArzcS65UmNhw"
+        "multiAddress": "/dns/node1/tcp/15600/p2p/12D3KooWNgTPQzvNNB2Lcwdv3H8Rc4RqDR7qLYPprK9WbFobQH6S"
       },
       {
         "alias": "coo",
-        "multiAddress": "/dns/coo/tcp/15600/p2p/12D3KooWRdnMs7UAuG5NbZkdGHt9d4URQUi9ke2Kcz1Z555hPKaJ"
+        "multiAddress": "/dns/coo/tcp/15600/p2p/12D3KooWCfeRFoPPX1JdrmU5Nrz4sPyU9jFhvhphB1zEZbjdMFqX"
       }
     ]
   } 

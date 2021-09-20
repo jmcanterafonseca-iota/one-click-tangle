@@ -42,6 +42,7 @@ services:
       - 8081
       - 1883
       - 15600
+      - 14626
     ports:
       - "0.0.0.0:14265:14265"
       - "0.0.0.0:8081:8081"
@@ -65,8 +66,8 @@ services:
     restart: unless-stopped
     container_name: spammer
     expose:
-      - 14265
       - 15600
+      - 14626
     volumes:
       - ./config/config-spammer.json:/app/config.json:ro
       - ./config/profiles.json:/app/profiles.json

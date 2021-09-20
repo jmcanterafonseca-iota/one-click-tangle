@@ -47,7 +47,13 @@ removeSubfolderContent () {
 
   for folder in $folders; do
     if [ -d "./$folder" ]; then
-      sudo rm -Rf ./$folder/*
+      sudo rm -Rf ./"$folder"/*
     fi
   done
+}
+
+# Sets entry node for autopeering
+setEntryNode () {
+  local multiAddr="\/dns\/node-autopeering\/udp\/14626\/autopeering\/$1"
+  sed -i 's/"entryNodes": \[.*\]/"entryNodes": \["'$multiAddr'"\]/g' "$2"
 }
