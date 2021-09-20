@@ -45,9 +45,9 @@
             "lowWatermark": 5
         },
         "gossipUnknownPeersLimit": 4,
-        "identityPrivateKey": "",
-        "peerStore": {
-            "path": "./p2pstore/node-autopeering"
+        "identityPrivateKey": "87d7dc4955ccbe304cb40b1a64575409741d5828b1c43a028b28ab9978e966faf44fbce38e7e0482d6c8062a36c30a8b911dcf4b3f82cfbe22662205a7dce568",
+        "db": {
+            "path": "p2pstore"
         },
         "reconnectInterval": "30s",
         "autopeering": {
