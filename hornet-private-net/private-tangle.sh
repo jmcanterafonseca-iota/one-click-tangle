@@ -127,6 +127,9 @@ installTangle () {
   # Autopeering entry node is configured
   setupAutopeering
 
+  # Autopeering entry node is started
+  startAutopeering
+
   # Coordinator set up
   setupCoordinator
 
@@ -143,9 +146,6 @@ startContainers () {
 
   # Run a regular node 
   docker-compose --log-level ERROR up -d node
-
-  # Run the autopeering
-  docker-compose --log-level ERROR up -d node-autopeering
 }
 
 updateContainers () {
@@ -322,10 +322,18 @@ setupPeering () {
 ### Sets the autopeering configuration
 ### 
 setupAutopeering () {
-  local entry_peerID=$(getPeerID node-autopeering.identity.txt)
+  local entry_peerID=$(getAutopeeringID node-autopeering.identity.txt)
+  local multiaddr="\/dns\/node-autopeering\/udp\/14626\/autopeering\/$entry_peerID"
 
-  setEntryNode $entry_peerID config/config-node.json
-  setEntryNode $entry_peerID config/config-spammer.json
+  setEntryNode $multiaddr config/config-node.json
+  setEntryNode $multiaddr config/config-spammer.json
+}
+
+startAutopeering () {
+  # Run the autopeering entry node
+  echo "Starting autopeering entry node ..."
+  docker-compose --log-level ERROR up -d node-autopeering
+  sleep 5
 }
 
 stopContainers () {
@@ -338,6 +346,8 @@ startTangle () {
     echo "Install your Private Tangle first with './private-tangle.sh install'"
     exit 128 
   fi
+
+  startAutopeering
 
   export COO_PRV_KEYS="$(getPrivateKey coo-milestones-key-pair.txt)"
   startContainers

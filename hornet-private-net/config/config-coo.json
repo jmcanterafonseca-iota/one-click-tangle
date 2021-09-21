@@ -64,7 +64,7 @@
         "milestonePublicKeyCount": 1,
         "publicKeyRanges": [
             {
-                "key": "2201348508d018bee7fc2259bda6d1ebbbf003979e9d5eba22836fba2d441e0b",
+                "key": "765aab83c4e233d9f7c2bc16a7dfd643aff9c84eaf90ce28822985d1b91d4557",
                 "start": 0,
                 "end": 0
             }
@@ -142,7 +142,7 @@
             "lowWatermark": 5
         },
         "gossipUnknownPeersLimit": 4,
-        "identityPrivateKey": "060e46061b45b91d5afca7985108f1a17ffad2a8416438cf2a835c5ea153489b2a573528eedb1bf65c62f2b19bc5cd2cdb21031b029e75d23eebd575a26c1c16",
+        "identityPrivateKey": "db5db336d91b41236f08040c64464967472f23d5d41c946e037fb064aced93fdf6675b2c42da6123384f682f2c4953ad603fc2909486882d368bcea61bf9abc1",
         "db": {
             "path": "p2pstore"
         },

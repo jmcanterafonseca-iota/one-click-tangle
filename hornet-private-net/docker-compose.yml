@@ -42,7 +42,7 @@ services:
       - 8081
       - 1883
       - 15600
-      - 14626
+      - "14626/udp"
     ports:
       - "0.0.0.0:14265:14265"
       - "0.0.0.0:8081:8081"
@@ -67,7 +67,7 @@ services:
     container_name: spammer
     expose:
       - 15600
-      - 14626
+      - "14626/udp"
     volumes:
       - ./config/config-spammer.json:/app/config.json:ro
       - ./config/profiles.json:/app/profiles.json
@@ -87,7 +87,7 @@ services:
     restart: unless-stopped
     container_name: node-autopeering
     expose:
-      - 14626
+      - "14626/udp"
     ports:
       - "0.0.0.0:14626:14626/udp"
     volumes:

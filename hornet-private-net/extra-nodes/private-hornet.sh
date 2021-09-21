@@ -84,6 +84,11 @@ else
   fi
 fi
 
+# Autopeering entry node
+if [ -f ../node-autopeering.identity.txt ]; then
+    entry_node="\/dns\/node-autopeering\/udp\/14626\/autopeering\/$(getAutopeeringID ../node-autopeering.identity.txt)"
+fi
+
 if [ -n "$5" ]; then
   snapshot_file="$5"
 else 
@@ -200,7 +205,10 @@ installNode () {
   setupIdentity
 
   # Peering of the nodes is configured
-  setupPeering
+  # setupPeering
+
+  # Autopeering is set up
+  setupAutopeering
 
   # Coordinator set up
   setupCoordinator
@@ -230,7 +238,6 @@ updateNode () {
 
   startContainer
 }
-
 
 ###
 ### Sets the Coordinator address
@@ -279,6 +286,13 @@ setupPeering () {
   if ! [[ "$OSTYPE" == "darwin"* ]]; then
     sudo chown 65532:65532 ./config/peering.json
   fi
+}
+
+### 
+### Sets the peering configuration
+### 
+setupAutopeering () {
+  setEntryNode $entry_node ./config/config.json
 }
 
 stopContainers () {

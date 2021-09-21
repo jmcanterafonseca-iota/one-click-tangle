@@ -32,6 +32,10 @@ getPeerID () {
   cat $1 | awk -F : '{if ($1 ~ /PeerID/) print $2}' | sed "s/ \+//g" | tr -d "\n" | tr -d "\r"
 }
 
+getAutopeeringID () {
+   cat $1 | awk -F : '{if ($1 ~ /public key \(base58\)/) print $2}' | sed "s/ \+//g" | tr -d "\n" | tr -d "\r"
+}
+
 createSubfolders () {
   local folders="$@"
 
@@ -54,6 +58,5 @@ removeSubfolderContent () {
 
 # Sets entry node for autopeering
 setEntryNode () {
-  local multiAddr="\/dns\/node-autopeering\/udp\/14626\/autopeering\/$1"
-  sed -i 's/"entryNodes": \[.*\]/"entryNodes": \["'$multiAddr'"\]/g' "$2"
+  sed -i 's/"entryNodes": \[.*\]/"entryNodes": \["'$1'"\]/g' "$2"
 }

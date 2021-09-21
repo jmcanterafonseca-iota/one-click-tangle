@@ -64,7 +64,7 @@
         "milestonePublicKeyCount": 1,
         "publicKeyRanges": [
             {
-                "key": "2201348508d018bee7fc2259bda6d1ebbbf003979e9d5eba22836fba2d441e0b",
+                "key": "765aab83c4e233d9f7c2bc16a7dfd643aff9c84eaf90ce28822985d1b91d4557",
                 "start": 0,
                 "end": 0
             }
@@ -133,14 +133,14 @@
             "lowWatermark": 5
         },
         "gossipUnknownPeersLimit": 4,
-        "identityPrivateKey": "6533df9bef08cb66618930337e07a06b028925697ae064e960c01c1a648f6143830a13be5392371f043b19995c56d1c5b713d0b46854955aff990ee42d98478d",
+        "identityPrivateKey": "b51aefdd127d028aa343be689eacfeed019b8587589977ad975ffff7e77e2ecb8119970b107dc689c2359b4aab8ffdd28531989ff9a60677e397a303f460443f",
         "db": {
             "path": "p2pstore"
         },
         "reconnectInterval": "30s",
         "autopeering": {
             "bindAddress": "0.0.0.0:14626",
-            "entryNodes": ["/dns/node-autopeering/udp/14626/autopeering/12D3KooWEXciKrFJXHXs4W6Kzqs3Z7uvWghH3VogmGXoAfs1wwTC"],
+            "entryNodes": ["/dns/node-autopeering/udp/14626/autopeering/JArx6vTWEBxyr4QapAkc6mzEHZQ8fWmqha46YWowU1Ea"],
             "entryNodesPreferIPv6": false,
             "runAsEntryNode": false
         }
