@@ -65,7 +65,7 @@
         "milestonePublicKeyCount": 1,
         "publicKeyRanges": [
             {
-                "key": "9f283021f69e754089151d372208535547df1cca4ce595b529be2d1f2a01b7c9",
+                "key": "3c4d42725706c7094d77434b8396c0bdb40fb4eddefd0f9281ddaf444e24e172",
                 "start": 0,
                 "end": 0
             }
@@ -131,7 +131,7 @@
         "reconnectInterval": "30s",
         "autopeering": {
             "bindAddress": "0.0.0.0:14626",
-            "entryNodes": ["/dns/node-autopeering/udp/14626/autopeering/5EoXLADvW5QtLkQ51wEQCwKsq3uzatwUCxin1SczaTwT"],
+            "entryNodes": ["/dns/node-autopeering/udp/14626/autopeering/CfPzzHeoimGJ1HHWF1rmKgAAnHBVZqijLhpqrRvu96XK"],
             "entryNodesPreferIPv6": false,
             "runAsEntryNode": false,
             "inboundpeers": 6,
