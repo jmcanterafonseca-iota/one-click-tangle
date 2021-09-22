@@ -161,8 +161,10 @@ bootstrapFiles () {
   cp ../../docker-compose.yml .
   sed -i 's/node/'$node_name'/g' docker-compose.yml
 
+  local ports_init_str="  ports:"
+
   # Setting up the open ports to the host
-  local ports="  ports:"
+  local ports="$ports_init_str"
   local separator="      "
 
   if [ -n "$api_port" ]; then
@@ -180,7 +182,10 @@ bootstrapFiles () {
     ports="${ports}"$'\n'"${dashboard_str}"
   fi
   
-  echo "$ports" >> docker-compose.yml
+  # If no ports are set we do not concat anything
+  if ! [ "$ports" == "$ports_init_str" ]; then
+    echo "$ports" >> docker-compose.yml
+  fi
 
   cp ../../../config/config-node.json ./config/config.json
   sed -i 's/node1/'$node_name'/g' ./config/config.json
