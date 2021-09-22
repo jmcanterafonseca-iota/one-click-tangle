@@ -264,12 +264,6 @@ generateP2PIdentities () {
 ###
 setupIdentities () {
   generateP2PIdentities
-
-  setupIdentityPrivateKey node1.identity.txt config/config-node.json
-  setupIdentityPrivateKey coo.identity.txt config/config-coo.json
-  setupIdentityPrivateKey spammer.identity.txt config/config-spammer.json
-
-  setupIdentityPrivateKey node-autopeering.identity.txt config/config-autopeering.json
 }
 
 # Sets up the identity of the peers

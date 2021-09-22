@@ -65,7 +65,7 @@
         "milestonePublicKeyCount": 1,
         "publicKeyRanges": [
             {
-                "key": "765aab83c4e233d9f7c2bc16a7dfd643aff9c84eaf90ce28822985d1b91d4557",
+                "key": "9f283021f69e754089151d372208535547df1cca4ce595b529be2d1f2a01b7c9",
                 "start": 0,
                 "end": 0
             }
@@ -125,16 +125,17 @@
             "lowWatermark": 5
         },
         "gossipUnknownPeersLimit": 4,
-        "identityPrivateKey": "acf91b48e6b8efcfbcc19257b70b2965bf65e8a0f3cd2b404d5955bee36870c577aa625ce312815b08e5b63ad89d5b34c97fb42d453cc91dbaf2169ad47a9cd2",
         "db": {
             "path": "p2pstore"
         },
         "reconnectInterval": "30s",
         "autopeering": {
             "bindAddress": "0.0.0.0:14626",
-            "entryNodes": ["/dns/node-autopeering/udp/14626/autopeering/JArx6vTWEBxyr4QapAkc6mzEHZQ8fWmqha46YWowU1Ea"],
+            "entryNodes": ["/dns/node-autopeering/udp/14626/autopeering/5EoXLADvW5QtLkQ51wEQCwKsq3uzatwUCxin1SczaTwT"],
             "entryNodesPreferIPv6": false,
-            "runAsEntryNode": false
+            "runAsEntryNode": false,
+            "inboundpeers": 6,
+            "outboundpeers": 6
           }
     },
     "p2pdisc": {
