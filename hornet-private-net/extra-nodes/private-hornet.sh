@@ -22,6 +22,10 @@ set -e
 chmod +x ../utils.sh
 source ../utils.sh
 
+DEFAULT_API_PORT="14265"
+DEFAULT_PEERING_PORT="15600"
+DEFAULT_DASHBOARD_PORT="8081"
+
 help () {
   echo "usage: private-hornet.sh [install|update|start|stop] <node_connection_str> <coo_public_key>? <peer_multiAdress>? <snapshot_file>?"
 }
@@ -41,26 +45,12 @@ node_details="$2"
 IFS=':'
 read -a node_params <<< "$node_details"
 
-DEFAULT_API_PORT="14265"
-DEFAULT_PEERING_PORT="15600"
-DEFAULT_DASHBOARD_PORT="8081"
+# Unless a port is specified no port will be open to the host
 
 node_name="${node_params[0]}"
 api_port="${node_params[1]}"
 peering_port="${node_params[2]}"
 dashboard_port="${node_params[3]}"
-
-if [ -z "$api_port" ]; then
-  api_port=$DEFAULT_API_PORT
-fi
-
-if [ -z "$peering_port" ]; then
-  peering_port=$DEFAULT_PEERING_PORT
-fi
-
-if [ -z "$dashboard_port" ]; then
-  dashboard_port=$DEFAULT_DASHBOARD_PORT
-fi
 
 if [ -n "$3" ]; then
   coo_public_key="$3"
@@ -74,19 +64,19 @@ else
 fi
 
 if [ -n "$4" ]; then
-  peer_address="$4"
-else 
-  if [ -f ../node1.identity.txt ]; then
-    peer_address="/dns/node1/tcp/15600/p2p/$(getPeerID ../node1.identity.txt)"
+  # We determine whether the address is a peer address or an entry node address
+  if [ "$4" =~ .*"\/autopeering\/".* ]; then
+    entry_node="$4"
+  else 
+    peer_address="$4"
+  fi
+else # If no peer address or autopeering entry node provided then autopeering is configured 
+  if [ -f ../node-autopeering.identity.txt ]; then
+    entry_node="\/dns\/node-autopeering\/udp\/14626\/autopeering\/$(getAutopeeringID ../node-autopeering.identity.txt)"
   else
-    echo "Please provide a peering address"
+    echo "Please provide a peering address or an autopeering entry node"
     exit 132
   fi
-fi
-
-# Autopeering entry node
-if [ -f ../node-autopeering.identity.txt ]; then
-    entry_node="\/dns\/node-autopeering\/udp\/14626\/autopeering\/$(getAutopeeringID ../node-autopeering.identity.txt)"
 fi
 
 if [ -n "$5" ]; then
@@ -114,8 +104,9 @@ fi
 cd  ./nodes/"$node_name"
 
 clean () {
-  stopContainers
-
+  # We stop any container named as our node
+  docker rm -f "$node_name" 2> /dev/null
+  
   if [ -d ./db ]; then
     sudo rm -Rf ./db/*
   fi
@@ -169,9 +160,27 @@ volumeSetup () {
 bootstrapFiles () {
   cp ../../docker-compose.yml .
   sed -i 's/node/'$node_name'/g' docker-compose.yml
-  sed -i 's/0.0.0.0:'$DEFAULT_API_PORT'/0.0.0.0:'$api_port'/g' docker-compose.yml
-  sed -i 's/0.0.0.0:'$DEFAULT_PEERING_PORT'/0.0.0.0:'$peering_port'/g' docker-compose.yml
-  sed -i 's/0.0.0.0:'$DEFAULT_DASHBOARD_PORT'/0.0.0.0:'$dashboard_port'/g' docker-compose.yml
+
+  # Setting up the open ports to the host
+  local ports="  ports:"
+  local separator="      "
+
+  if [ -n "$api_port" ]; then
+    local api_str="${separator}- \"0.0.0.0:${api_port}:${DEFAULT_API_PORT}\""
+    ports="${ports}"$'\n'"${api_str}"
+  fi
+
+  if [ -n "$peering_port" ]; then
+    local peering_str="${separator}- \"0.0.0.0:${peering_port}:${DEFAULT_PEERING_PORT}\""
+     ports="${ports}"$'\n'"${peering_str}"
+  fi
+
+  if [ -n "$dashboard_port" ]; then
+    local dashboard_str="${separator}- \"0.0.0.0:${dashboard_port}:${DEFAULT_DASHBOARD_PORT}\""
+    ports="${ports}"$'\n'"${dashboard_str}"
+  fi
+  
+  echo "$ports" >> docker-compose.yml
 
   cp ../../../config/config-node.json ./config/config.json
   sed -i 's/node1/'$node_name'/g' ./config/config.json
@@ -205,10 +214,13 @@ installNode () {
   setupIdentity
 
   # Peering of the nodes is configured
-  # setupPeering
-
-  # Autopeering is set up
-  setupAutopeering
+  if [ -n "$peer_address" ]; then
+    echo "Setting up peer node: $peer_address"
+    setupPeering
+  else 
+    echo "Setting up autopeering entry node: $entry_node"
+    setupAutopeering
+  fi
 
   # Coordinator set up
   setupCoordinator
@@ -243,7 +255,6 @@ updateNode () {
 ### Sets the Coordinator address
 ###
 setupCoordinator () {
-  echo "$(pwd)"
   setCooPublicKey "$coo_public_key" "./config/config.json"
 }
 
@@ -252,8 +263,6 @@ setupCoordinator () {
 ###
 setupIdentity () {
   generateP2PIdentity "$node_name" identity.txt
-
-  setupIdentityPrivateKey identity.txt "./config/config.json"
 }
 
 # Sets up the identity of the peers
