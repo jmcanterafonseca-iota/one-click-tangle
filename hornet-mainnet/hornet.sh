@@ -36,8 +36,6 @@ if ! [ -x "$(command -v jq)" ]; then
     exit 156
 fi
 
-HORNET_UPSTREAM="https://raw.githubusercontent.com/gohornet/hornet/main/"
-
 #####
 
 clean () {
